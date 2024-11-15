@@ -93,12 +93,28 @@ const loadRooms = (count: number): void => {
   performance.measure('載入更多 ＋ 排序', 'load-started', 'load-ended')
 }
 
+const resetRoomTime = (count: number): void => {
+  performance.mark('reset-time-started')
+
+  for (let i = 0; i <= count; i++) {
+    const randomNum = Math.floor(Math.random() * rooms.value.length)
+    rooms.value[randomNum].updatedAt = Date.now()
+  }
+
+  rooms.value = [...rooms.value]
+  sortRooms()
+
+  performance.mark('reset-time-ended')
+  performance.measure('刷新時間 ＋ 排序', 'reset-time-started', 'reset-time-ended')
+}
+
 export const useRooms = () => {
   return {
     rooms,
     sortRooms,
     loadRooms,
     insertRooms,
+    resetRoomTime,
     isSorting: computed(() => isSortingCount.value > 0),
   }
 }

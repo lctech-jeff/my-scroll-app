@@ -7,7 +7,7 @@ import { useFps, useTransition, useVirtualList } from '@vueuse/core'
 
 import RoomItem from '@/components/RoomItem.vue'
 
-const { rooms, sortRooms, insertRooms, loadRooms, isSorting } = useRooms()
+const { rooms, sortRooms, insertRooms, loadRooms, resetRoomTime, isSorting } = useRooms()
 
 const { list, containerProps, wrapperProps } = useVirtualList(rooms, {
   itemHeight: 64,
@@ -27,6 +27,7 @@ const { state: cpuState } = useCPU()
 
 const insertNum = ref<number>(30)
 const loadNum = ref<number>(30)
+const resetTimeNum = ref<number>(10)
 
 const transitionRoomLength = useTransition(() => rooms.value.length, {
   duration: 1000,
@@ -47,8 +48,10 @@ const virtualListLength = computed(() => {
 const consoleTheMeasure = (): void => {
   const insertMeasures = performance.getEntriesByName('插入 ＋ 排序')
   const loadedMeasures = performance.getEntriesByName('載入更多 ＋ 排序')
+  const randomMeasures = performance.getEntriesByName('刷新時間 ＋ 排序')
   console.log(insertMeasures)
   console.log(loadedMeasures)
+  console.log(randomMeasures)
 }
 
 const firstRoom = computed<Room | null>(() => {
@@ -74,8 +77,7 @@ const firstRoom = computed<Room | null>(() => {
         <div>FPS： {{ fps }}</div>
         <div>CPU 狀態： {{ cpuState }}</div>
       </div>
-      <div class="grid max-w-[30vw] grid-cols-3 items-start gap-2">
-        <button type="button" @click="sortRooms()">{{ isSorting ? '排序中' : '排序' }}</button>
+      <div class="grid max-w-[30vw] grid-cols-3 items-start gap-x-2 gap-y-4">
         <div class="flex flex-col gap-2">
           <button type="button" @click="insertRooms(insertNum)">插入</button>
           <input type="number" v-model="insertNum" class="w-full appearance-none text-center" />
@@ -84,6 +86,11 @@ const firstRoom = computed<Room | null>(() => {
           <button type="button" @click="loadRooms(loadNum)">載入更多</button>
           <input type="number" v-model="loadNum" class="w-full appearance-none text-center" />
         </div>
+        <div class="flex flex-col gap-2">
+          <button type="button" @click="resetRoomTime(resetTimeNum)">刷新項目</button>
+          <input type="number" v-model="resetTimeNum" class="w-full appearance-none text-center" />
+        </div>
+        <button type="button" @click="sortRooms()">{{ isSorting ? '排序中' : '排序' }}</button>
         <button type="button" @click="consoleTheMeasure()">Log Performance</button>
         <div class="col-span-3 space-y-2 pt-3">
           <div>Virtual List 第一則</div>
