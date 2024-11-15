@@ -2,6 +2,7 @@
 import { useCPU } from '@/composable/useCPU'
 import { useRooms } from '@/composable/useRooms'
 import { useVisibleTrigger } from '@/composable/useVisibleTrigger'
+import type { Room } from '@/domain'
 import { useFps, useTransition, useVirtualList } from '@vueuse/core'
 
 import RoomItem from '@/components/RoomItem.vue'
@@ -15,8 +16,12 @@ const { list, containerProps, wrapperProps } = useVirtualList(rooms, {
 
 const { onTrigger } = useVisibleTrigger('load-more-trigger')
 
+const insert = (count: number) => {
+  insertRooms(count)
+}
+
 onTrigger(() => {
-  loadRooms(20)
+  loadRooms(loadNum.value)
 })
 
 // UI
@@ -49,17 +54,21 @@ const consoleTheMeasure = (): void => {
   console.log(insertMeasures)
   console.log(loadedMeasures)
 }
+
+const firstRoom = computed<Room | null>(() => {
+  return list.value[0]?.data || null
+})
 </script>
 
 <template>
   <div class="flex items-start gap-4">
     <div v-bind="containerProps" class="h-[80dvh] max-w-[500px] overflow-auto rounded bg-gray-500/5 p-2">
       <div v-bind="wrapperProps">
-        <RoomItem v-for="{ index, data } in list" :key="index" :room="data" />
+        <RoomItem v-for="{ data } in list" :key="data.roomID" :room="data" />
       </div>
       <div ref="load-more-trigger" class="pointer-event-none invisible -translate-y-[30vh]"></div>
       <div class="grid place-content-center">
-        <img src="@/assets/images/loading.svg" alt="">
+        <img src="@/assets/images/loading.svg" alt="" />
       </div>
     </div>
     <div class="space-y-5">
@@ -76,10 +85,16 @@ const consoleTheMeasure = (): void => {
           <input type="number" v-model="maxInsertNum" class="w-full appearance-none text-center" />
         </div>
         <div class="flex flex-col gap-2">
-          <button type="button" @click="loadRooms(loadNum)">載入更多</button>
+          <button type="button" @click="insert(loadNum)">載入更多</button>
           <input type="number" v-model="loadNum" class="w-full appearance-none text-center" />
         </div>
         <button type="button" @click="consoleTheMeasure()">Log Performance</button>
+        <div class="col-span-3 space-y-2 pt-3">
+          <div>Virtual List 第一則</div>
+          <div v-if="firstRoom">
+            <RoomItem :room="firstRoom" />
+          </div>
+        </div>
       </div>
     </div>
   </div>
