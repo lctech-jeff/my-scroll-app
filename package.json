@@ -1,0 +1,31 @@
+{
+  "name": "my-scroll-app",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "serve": "vite",
+    "build": "vue-tsc -b && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@vueuse/components": "^11.2.0",
+    "@vueuse/core": "^11.2.0",
+    "vue": "^3.5.12"
+  },
+  "devDependencies": {
+    "@faker-js/faker": "^9.2.0",
+    "@types/node": "^22.9.0",
+    "@vitejs/plugin-vue": "^5.1.4",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "prettier": "^3.3.3",
+    "prettier-plugin-tailwindcss": "^0.6.8",
+    "sass": "^1.81.0",
+    "tailwindcss": "^3.4.15",
+    "typescript": "~5.6.2",
+    "unplugin-auto-import": "^0.18.4",
+    "vite": "^5.4.10",
+    "vue-tsc": "^2.1.8"
+  }
+}
