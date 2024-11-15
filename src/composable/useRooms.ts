@@ -63,7 +63,7 @@ const insertRooms = (count: number): void => {
       }
     })
 
-  rooms.value.push(...newRooms)
+  rooms.value = rooms.value.concat(newRooms)
   sortRooms()
   performance.mark('insert-ended')
   performance.measure('插入 ＋ 排序', 'insert-started', 'insert-ended')
@@ -86,7 +86,7 @@ const loadRooms = (count: number): void => {
       }
     })
 
-  rooms.value.push(...newRooms)
+  rooms.value = rooms.value.concat(newRooms)
   sortRooms()
 
   performance.mark('load-ended')

@@ -16,10 +16,6 @@ const { list, containerProps, wrapperProps } = useVirtualList(rooms, {
 
 const { onTrigger } = useVisibleTrigger('load-more-trigger')
 
-const insert = (count: number) => {
-  insertRooms(count)
-}
-
 onTrigger(() => {
   loadRooms(loadNum.value)
 })
@@ -29,7 +25,7 @@ const fps = useFps()
 
 const { state: cpuState } = useCPU()
 
-const maxInsertNum = ref<number>(30)
+const insertNum = ref<number>(30)
 const loadNum = ref<number>(30)
 
 const transitionRoomLength = useTransition(() => rooms.value.length, {
@@ -81,11 +77,11 @@ const firstRoom = computed<Room | null>(() => {
       <div class="grid max-w-[30vw] grid-cols-3 items-start gap-2">
         <button type="button" @click="sortRooms()">{{ isSorting ? '排序中' : '排序' }}</button>
         <div class="flex flex-col gap-2">
-          <button type="button" @click="insertRooms(maxInsertNum)">插入</button>
-          <input type="number" v-model="maxInsertNum" class="w-full appearance-none text-center" />
+          <button type="button" @click="insertRooms(insertNum)">插入</button>
+          <input type="number" v-model="insertNum" class="w-full appearance-none text-center" />
         </div>
         <div class="flex flex-col gap-2">
-          <button type="button" @click="insert(loadNum)">載入更多</button>
+          <button type="button" @click="loadRooms(loadNum)">載入更多</button>
           <input type="number" v-model="loadNum" class="w-full appearance-none text-center" />
         </div>
         <button type="button" @click="consoleTheMeasure()">Log Performance</button>
