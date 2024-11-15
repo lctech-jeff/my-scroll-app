@@ -75,7 +75,16 @@ const firstRoom = computed<Room | null>(() => {
         <div>總房間數量： {{ roomsLength }}</div>
         <div>畫面數量： {{ virtualListLength }}</div>
         <div>FPS： {{ fps }}</div>
-        <div>CPU 狀態： {{ cpuState }}</div>
+        <div>
+          <a
+            href="https://developer.mozilla.org/en-US/docs/Web/API/PressureRecord/state#value"
+            target="_blank"
+            rel="noreferrer noopener"
+          >
+            CPU 狀態
+          </a>
+          ： {{ cpuState }}
+        </div>
       </div>
       <div class="grid max-w-[30vw] grid-cols-3 items-start gap-x-2 gap-y-4">
         <div class="flex flex-col gap-2">
