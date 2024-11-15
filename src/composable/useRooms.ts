@@ -1,16 +1,7 @@
+import type { Room } from '@/domain'
 import { faker } from '@faker-js/faker'
 
 const INIT_ROOM_COUNT = 10
-
-interface Room {
-  index: number
-  roomID: string
-  name: string
-  avatar: string
-  updatedAt: number
-  message: string
-  tag: number
-}
 
 const timeRange = ref<{
   from: number
@@ -59,14 +50,18 @@ const sortRooms = async (): Promise<void> => {
 
 sortRooms()
 
-const insertRooms = (max: number): void => {
+const insertRooms = (count: number): void => {
   performance.mark('insert-started')
-  const newRooms = faker.helpers.multiple(createRandomRoom, {
-    count: {
-      min: 5,
-      max,
-    },
-  })
+  const newRooms = faker.helpers
+    .multiple(createRandomRoom, {
+      count,
+    })
+    .map(v => {
+      return {
+        ...v,
+        updatedAt: faker.date.between({ from: timeRange.value.from, to: Date.now() }).getTime(),
+      }
+    })
 
   rooms.value.push(...newRooms)
   sortRooms()

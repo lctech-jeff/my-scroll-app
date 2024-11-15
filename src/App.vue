@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { useRooms } from '@/composable/useRooms'
-import { UseTimeAgo } from '@vueuse/components'
-import { useIntervalFn, useTransition, useVirtualList, watchDebounced } from '@vueuse/core'
-import { useFps } from '@vueuse/core'
 import { useCPU } from '@/composable/useCPU'
-import { useElementVisibility } from '@vueuse/core'
+import { useRooms } from '@/composable/useRooms'
+import { useVisibleTrigger } from '@/composable/useVisibleTrigger'
+import { useFps, useTransition, useVirtualList } from '@vueuse/core'
+
+import RoomItem from '@/components/RoomItem.vue'
 
 const { rooms, sortRooms, insertRooms, loadRooms, isSorting } = useRooms()
 
@@ -13,36 +13,19 @@ const { list, containerProps, wrapperProps } = useVirtualList(rooms, {
   overscan: 10,
 })
 
-const loadMoreEl = useTemplateRef<HTMLDivElement>('load-more-trigger')
-const loadMoreElIsVisible = useElementVisibility(loadMoreEl)
+const { onTrigger } = useVisibleTrigger('load-more-trigger')
 
-const { pause, resume } = useIntervalFn(
-  () => {
-    loadRooms(20)
-  },
-  500,
-  { immediate: false }
-)
-
-watchDebounced(
-  loadMoreElIsVisible,
-  nVal => {
-    if (nVal) {
-      resume()
-    } else {
-      pause()
-    }
-  },
-  { debounce: 300, maxWait: 1000 }
-)
+onTrigger(() => {
+  loadRooms(20)
+})
 
 // UI
 const fps = useFps()
 
 const { state: cpuState } = useCPU()
 
-const maxInsertNum = ref<number>(10)
-const loadNum = ref<number>(20)
+const maxInsertNum = ref<number>(30)
+const loadNum = ref<number>(30)
 
 const transitionRoomLength = useTransition(() => rooms.value.length, {
   duration: 1000,
@@ -72,95 +55,11 @@ const consoleTheMeasure = (): void => {
   <div class="flex items-start gap-4">
     <div v-bind="containerProps" class="h-[80dvh] max-w-[500px] overflow-auto rounded bg-gray-500/5 p-2">
       <div v-bind="wrapperProps">
-        <div
-          v-for="{ index, data } in list"
-          :key="index"
-          class="flex h-16 cursor-pointer items-center gap-3 px-4 py-3 hover:bg-slate-500"
-        >
-          <div class="size-10 shrink-0 overflow-hidden rounded-full bg-slate-500/25">
-            <img class="size-full object-cover" :src="data.avatar" :alt="data.name" />
-          </div>
-          <div class="grid w-full text-start">
-            <div class="flex items-center justify-between">
-              <span class="line-clamp-1 text-sm">({{ data.index }}) {{ data.name }}</span>
-              <UseTimeAgo v-slot="{ timeAgo }" :time="data.updatedAt">
-                <span class="text-xs">{{ timeAgo }}</span>
-              </UseTimeAgo>
-            </div>
-            <span class="line-clamp-1 text-xs opacity-60">({{ data.message }})</span>
-          </div>
-        </div>
+        <RoomItem v-for="{ index, data } in list" :key="index" :room="data" />
       </div>
-      <div ref="load-more-trigger" class="-translate-y-[30vh] pointer-event-none invisible"></div>
+      <div ref="load-more-trigger" class="pointer-event-none invisible -translate-y-[30vh]"></div>
       <div class="grid place-content-center">
-        <svg
-          version="1.1"
-          id="Layer_1"
-          xmlns="http://www.w3.org/2000/svg"
-          xmlns:xlink="http://www.w3.org/1999/xlink"
-          x="0px"
-          y="0px"
-          width="24px"
-          height="30px"
-          viewBox="0 0 24 30"
-          style="enable-background: new 0 0 50 50"
-          xml:space="preserve"
-        >
-          <rect x="0" y="13" width="4" height="5" fill="#44bd87">
-            <animate
-              attributeName="height"
-              attributeType="XML"
-              values="5;21;5"
-              begin="0s"
-              dur="0.6s"
-              repeatCount="indefinite"
-            />
-            <animate
-              attributeName="y"
-              attributeType="XML"
-              values="13; 5; 13"
-              begin="0s"
-              dur="0.6s"
-              repeatCount="indefinite"
-            />
-          </rect>
-          <rect x="10" y="13" width="4" height="5" fill="#44bd87">
-            <animate
-              attributeName="height"
-              attributeType="XML"
-              values="5;21;5"
-              begin="0.15s"
-              dur="0.6s"
-              repeatCount="indefinite"
-            />
-            <animate
-              attributeName="y"
-              attributeType="XML"
-              values="13; 5; 13"
-              begin="0.15s"
-              dur="0.6s"
-              repeatCount="indefinite"
-            />
-          </rect>
-          <rect x="20" y="13" width="4" height="5" fill="#44bd87">
-            <animate
-              attributeName="height"
-              attributeType="XML"
-              values="5;21;5"
-              begin="0.3s"
-              dur="0.6s"
-              repeatCount="indefinite"
-            />
-            <animate
-              attributeName="y"
-              attributeType="XML"
-              values="13; 5; 13"
-              begin="0.3s"
-              dur="0.6s"
-              repeatCount="indefinite"
-            />
-          </rect>
-        </svg>
+        <img src="@/assets/images/loading.svg" alt="">
       </div>
     </div>
     <div class="space-y-5">
