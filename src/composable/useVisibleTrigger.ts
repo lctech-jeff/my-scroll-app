@@ -17,6 +17,12 @@ export const useVisibleTrigger = (key: string) => {
     { immediate: false }
   )
 
+  watch(targetEl, nVal => {
+    if (!nVal) {
+      pause()
+    }
+  })
+
   watchDebounced(
     targetElIsVisible,
     nVal => {

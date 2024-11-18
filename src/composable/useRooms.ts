@@ -51,7 +51,11 @@ const sortRooms = async (): Promise<void> => {
 
 sortRooms()
 
+const isInserting = ref<boolean>(false)
+
 const insertRooms = async (count: number): Promise<void> => {
+  if (isInserting.value) return
+  isInserting.value = true
   performance.mark('insert-started')
 
   // @ts-expect-error
@@ -96,9 +100,14 @@ const insertRooms = async (count: number): Promise<void> => {
 
   performance.mark('insert-ended')
   performance.measure('插入 ＋ 排序', 'insert-started', 'insert-ended')
+  isInserting.value = false
 }
 
+const isLoadingCount = ref<number>(0)
+
 const loadRooms = async (count: number): Promise<void> => {
+  if (isLoadingCount.value > 0) return
+  isLoadingCount.value++
   performance.mark('load-started')
 
   timeRange.value.to = timeRange.value.from
@@ -145,9 +154,15 @@ const loadRooms = async (count: number): Promise<void> => {
 
   performance.mark('load-ended')
   performance.measure('載入更多 ＋ 排序', 'load-started', 'load-ended')
+  isLoadingCount.value--
+  isLoadingCount.value = Math.max(isLoadingCount.value, 0)
 }
 
+const isResetting = ref<boolean>(false)
+
 const resetRoomTime = async (count: number): Promise<void> => {
+  if (isResetting.value) return
+  isResetting.value = true
   performance.mark('reset-time-started')
 
   // @ts-expect-error
@@ -179,6 +194,7 @@ const resetRoomTime = async (count: number): Promise<void> => {
 
   performance.mark('reset-time-ended')
   performance.measure('刷新時間 ＋ 排序', 'reset-time-started', 'reset-time-ended')
+  isResetting.value = false
 }
 
 export const useRooms = () => {
@@ -190,5 +206,8 @@ export const useRooms = () => {
     resetRoomTime,
     isSorting: computed(() => isSortingCount.value > 0),
     chunkNum,
+    isInserting,
+    isLoading: computed(() => isLoadingCount.value > 0),
+    isResetting,
   }
 }

@@ -7,7 +7,18 @@ import { useFps, useTransition, useVirtualList } from '@vueuse/core'
 
 import RoomItem from '@/components/RoomItem.vue'
 
-const { rooms, sortRooms, insertRooms, loadRooms, resetRoomTime, isSorting, chunkNum } = useRooms()
+const {
+  rooms,
+  sortRooms,
+  insertRooms,
+  loadRooms,
+  resetRoomTime,
+  isSorting,
+  chunkNum,
+  isInserting,
+  isLoading,
+  isResetting,
+} = useRooms()
 
 const { list, containerProps, wrapperProps } = useVirtualList(rooms, {
   itemHeight: 64,
@@ -17,6 +28,8 @@ const { list, containerProps, wrapperProps } = useVirtualList(rooms, {
 const { onTrigger } = useVisibleTrigger('load-more-trigger')
 
 onTrigger(() => {
+  console.log(isLoading.value)
+  if (isLoading.value) return
   loadRooms(loadNum.value)
 })
 
@@ -69,7 +82,7 @@ const firstRoom = computed<Room | null>(() => {
       <div v-bind="wrapperProps">
         <RoomItem v-for="{ data } in list" :key="data.roomID" :room="data" />
       </div>
-      <div ref="load-more-trigger" class="pointer-event-none invisible -translate-y-[30vh]"></div>
+      <div ref="load-more-trigger" v-if="!isLoading" class="pointer-event-none invisible -translate-y-[30vh]"></div>
       <div class="grid place-content-center">
         <img src="@/assets/images/loading.svg" alt="" />
       </div>
@@ -100,20 +113,28 @@ const firstRoom = computed<Room | null>(() => {
             </a>
             分批處理：
           </span>
-          每<input id="chunkNum" type="number" v-model="chunkNum" class="w-24 appearance-none text-center" />筆
+          每
+          <input id="chunkNum" type="number" v-model="chunkNum" class="w-24 appearance-none text-center" />
+          筆
         </label>
       </div>
       <div class="grid w-[80vw] grid-cols-3 items-start gap-x-2 gap-y-4 md:w-[40vw]">
         <div class="flex flex-col gap-2">
-          <button type="button" @click="insertRooms(insertNum)">插入</button>
+          <button type="button" @click="insertRooms(insertNum)" :disabled="isInserting">
+            {{ isInserting ? '插入中' : '插入' }}
+          </button>
           <input type="number" v-model="insertNum" class="w-full appearance-none text-center" />
         </div>
         <div class="flex flex-col gap-2">
-          <button type="button" @click="loadRooms(loadNum)">載入更多</button>
+          <button type="button" @click="loadRooms(loadNum)" :disabled="isLoading">
+            {{ isLoading ? '載入中' : '載入更多' }}
+          </button>
           <input type="number" v-model="loadNum" class="w-full appearance-none text-center" />
         </div>
         <div class="flex flex-col gap-2">
-          <button type="button" @click="resetRoomTime(resetTimeNum)">刷新項目</button>
+          <button type="button" @click="resetRoomTime(resetTimeNum)" :disabled="isResetting">
+            {{ isResetting ? '刷新中' : '刷新項目' }}
+          </button>
           <input type="number" v-model="resetTimeNum" class="w-full appearance-none text-center" />
         </div>
         <button type="button" @click="sortRooms()">{{ isSorting ? '排序中' : '排序' }}</button>
