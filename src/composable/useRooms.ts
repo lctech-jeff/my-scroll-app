@@ -50,16 +50,30 @@ sortWorker.addEventListener('message', e => {
   isSortingCount.value--
 })
 
+const isUsingWorker = ref<boolean>(true)
+
 const sortRooms = async (): Promise<void> => {
   isSortingCount.value++
   lastSortFlag = Date.now()
 
-  sortWorker.postMessage(
-    JSON.stringify({
-      payload: rooms.value,
-      flag: lastSortFlag,
+  if (isUsingWorker.value) {
+    sortWorker.postMessage(
+      JSON.stringify({
+        payload: rooms.value,
+        flag: lastSortFlag,
+      })
+    )
+  } else {
+    console.time('排序花費時間')
+    rooms.value.sort((a: Room, b: Room) => {
+      if (a.updatedAt > b.updatedAt) {
+        return -1
+      } else {
+        return 1
+      }
     })
-  )
+    console.timeEnd('排序花費時間')
+  }
 }
 
 sortRooms()
@@ -230,5 +244,6 @@ export const useRooms = () => {
     isInserting,
     isLoading: computed(() => isLoadingCount.value > 0),
     isResetting,
+    isUsingWorker,
   }
 }

@@ -18,6 +18,7 @@ const {
   isInserting,
   isLoading,
   isResetting,
+  isUsingWorker,
 } = useRooms()
 
 const { list, containerProps, wrapperProps } = useVirtualList(rooms, {
@@ -113,6 +114,13 @@ const roomIndex = computed<{ from: number; to: number }>(() => {
           </a>
           ： {{ cpuState }}
         </div>
+        <label for="isUsingWorker" class="flex items-center gap-2">
+          <input id="isUsingWorker" type="checkbox" v-model="isUsingWorker" class="w-6 text-center" />
+          使用
+          <a href="https://developer.mozilla.org/en-US/docs/Web/API/Worker" target="_blank" rel="noreferrer noopener">
+            Worker API
+          </a>
+        </label>
         <label v-if="isSupportSchedulerAPI" for="chunkNum" class="flex items-center gap-2">
           <span class="text-center">
             <a
