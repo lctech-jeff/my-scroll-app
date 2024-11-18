@@ -7,7 +7,7 @@ import { useFps, useTransition, useVirtualList } from '@vueuse/core'
 
 import RoomItem from '@/components/RoomItem.vue'
 
-const { rooms, sortRooms, insertRooms, loadRooms, resetRoomTime, isSorting } = useRooms()
+const { rooms, sortRooms, insertRooms, loadRooms, resetRoomTime, isSorting, chunkNum } = useRooms()
 
 const { list, containerProps, wrapperProps } = useVirtualList(rooms, {
   itemHeight: 64,
@@ -88,6 +88,10 @@ const firstRoom = computed<Room | null>(() => {
           </a>
           ： {{ cpuState }}
         </div>
+        <label for="chunkNum" class="flex items-center gap-2">
+          <span class="text-center">Scheduler yield 處理數量：</span>
+          <input id="chunkNum" type="number" v-model="chunkNum" class="w-24 appearance-none text-center" />
+        </label>
       </div>
       <div class="grid w-[80vw] grid-cols-3 items-start gap-x-2 gap-y-4 md:w-[40vw]">
         <div class="flex flex-col gap-2">

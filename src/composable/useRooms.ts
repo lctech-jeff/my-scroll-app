@@ -2,6 +2,7 @@ import type { Room } from '@/domain'
 import { faker } from '@faker-js/faker'
 
 const INIT_ROOM_COUNT = 10
+const chunkNum = ref<number>(100)
 
 const timeRange = ref<{
   from: number
@@ -50,59 +51,104 @@ const sortRooms = async (): Promise<void> => {
 
 sortRooms()
 
-const insertRooms = (count: number): void => {
+const insertRooms = async (count: number): Promise<void> => {
   performance.mark('insert-started')
-  const newRooms = faker.helpers
-    .multiple(createRandomRoom, {
-      count,
-    })
-    .map(v => {
-      return {
-        ...v,
-        updatedAt: faker.date.between({ from: timeRange.value.from, to: Date.now() }).getTime(),
-      }
-    })
 
-  rooms.value = rooms.value.concat(newRooms)
-  sortRooms()
-  performance.mark('insert-ended')
-  performance.measure('插入 ＋ 排序', 'insert-started', 'insert-ended')
+  const chunkCount: number[] = new Array(Math.floor(count / chunkNum.value))
+    .fill(chunkNum.value)
+    .concat(count % chunkNum.value)
+
+  for (let i = 0; i < chunkCount.length; i++) {
+    const newRooms = faker.helpers
+      .multiple(createRandomRoom, {
+        count: chunkCount[i],
+      })
+      .map(v => {
+        return {
+          ...v,
+          updatedAt: faker.date.between({ from: timeRange.value.from, to: Date.now() }).getTime(),
+        }
+      })
+    rooms.value = rooms.value.concat(newRooms)
+    // @ts-expect-error
+    if (globalThis.scheduler?.yield) {
+      // @ts-expect-error
+      await window.scheduler.yield()
+    }
+
+    sortRooms()
+    // @ts-expect-error
+    if (globalThis.scheduler?.yield) {
+      // @ts-expect-error
+      await window.scheduler.yield()
+    }
+    performance.mark('insert-ended')
+    performance.measure('插入 ＋ 排序', 'insert-started', 'insert-ended')
+  }
 }
 
-const loadRooms = (count: number): void => {
+const loadRooms = async (count: number): Promise<void> => {
   performance.mark('load-started')
 
   timeRange.value.to = timeRange.value.from
   timeRange.value.from = timeRange.value.to - 86400 * 1000 * 1
 
-  const newRooms = faker.helpers
-    .multiple(createRandomRoom, {
-      count,
-    })
-    .map(v => {
-      return {
-        ...v,
-        updatedAt: faker.date.between(timeRange.value).getTime(),
-      }
-    })
+  const chunkCount: number[] = new Array(Math.floor(count / chunkNum.value))
+    .fill(chunkNum.value)
+    .concat(count % chunkNum.value)
 
-  rooms.value = rooms.value.concat(newRooms)
-  sortRooms()
+  for (let i = 0; i < chunkCount.length; i++) {
+    const newRooms = faker.helpers
+      .multiple(createRandomRoom, {
+        count: chunkCount[i],
+      })
+      .map(v => {
+        return {
+          ...v,
+          updatedAt: faker.date.between(timeRange.value).getTime(),
+        }
+      })
+    rooms.value = rooms.value.concat(newRooms)
+    // @ts-expect-error
+    if (globalThis.scheduler?.yield) {
+      // @ts-expect-error
+      await window.scheduler.yield()
+    }
+
+    sortRooms()
+    // @ts-expect-error
+    if (globalThis.scheduler?.yield) {
+      // @ts-expect-error
+      await window.scheduler.yield()
+    }
+  }
 
   performance.mark('load-ended')
   performance.measure('載入更多 ＋ 排序', 'load-started', 'load-ended')
 }
 
-const resetRoomTime = (count: number): void => {
+const resetRoomTime = async (count: number): Promise<void> => {
   performance.mark('reset-time-started')
 
-  for (let i = 0; i <= count; i++) {
-    const randomNum = Math.floor(Math.random() * rooms.value.length)
-    rooms.value[randomNum].updatedAt = Date.now()
-  }
+  const chunkCount: number[] = new Array(Math.floor(count / chunkNum.value))
+    .fill(chunkNum.value)
+    .concat(count % chunkNum.value)
 
-  rooms.value = [...rooms.value]
-  sortRooms()
+  for (let i = 0; i < chunkCount.length; i++) {
+    chunkCount.forEach(() => {
+      const randomNum = Math.floor(Math.random() * rooms.value.length)
+      rooms.value[randomNum].updatedAt = Date.now()
+    })
+
+    rooms.value = [...rooms.value]
+    sortRooms()
+
+    // @ts-expect-error
+    if (globalThis.scheduler?.yield) {
+      // @ts-expect-error
+      await window.scheduler.yield()
+    }
+  }
 
   performance.mark('reset-time-ended')
   performance.measure('刷新時間 ＋ 排序', 'reset-time-started', 'reset-time-ended')
@@ -116,5 +162,6 @@ export const useRooms = () => {
     insertRooms,
     resetRoomTime,
     isSorting: computed(() => isSortingCount.value > 0),
+    chunkNum,
   }
 }
