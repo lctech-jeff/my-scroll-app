@@ -36,25 +36,41 @@ const rooms = ref<Room[]>(
   })
 )
 
+let lastSortFlag: number = Date.now()
+
+const sortWorker = new Worker(new URL('@/worker/sort.ts', import.meta.url), {
+  type: 'module',
+})
+
+sortWorker.addEventListener('message', e => {
+  if (e.data.flag === lastSortFlag) {
+    rooms.value = e.data.payload
+  }
+
+  isSortingCount.value--
+})
+
 const sortRooms = async (): Promise<void> => {
   isSortingCount.value++
-  console.time('排序花費時間')
-  rooms.value.sort((a, b) => {
-    if (a.updatedAt > b.updatedAt) {
-      return -1
-    } else {
-      return 1
-    }
-  })
-  isSortingCount.value--
-  console.timeEnd('排序花費時間')
+  lastSortFlag = Date.now()
+
+  sortWorker.postMessage(
+    JSON.stringify({
+      payload: rooms.value,
+      flag: lastSortFlag,
+    })
+  )
 }
 
 sortRooms()
 
-const debounceSortRooms = useDebounceFn(() => {
-  sortRooms()
-}, 300, { maxWait: 2000})
+const debounceSortRooms = useDebounceFn(
+  () => {
+    sortRooms()
+  },
+  300,
+  { maxWait: 2000 }
+)
 
 const isInserting = ref<boolean>(false)
 
