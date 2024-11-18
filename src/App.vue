@@ -24,7 +24,8 @@ onTrigger(() => {
 const fps = useFps()
 
 const { state: cpuState } = useCPU()
-
+// @ts-expect-error
+const isSupportSchedulerAPI = !!globalThis.scheduler?.yield
 const insertNum = ref<number>(30)
 const loadNum = ref<number>(30)
 const resetTimeNum = ref<number>(10)
@@ -88,9 +89,18 @@ const firstRoom = computed<Room | null>(() => {
           </a>
           ： {{ cpuState }}
         </div>
-        <label for="chunkNum" class="flex items-center gap-2">
-          <span class="text-center">Scheduler yield 處理數量：</span>
-          <input id="chunkNum" type="number" v-model="chunkNum" class="w-24 appearance-none text-center" />
+        <label v-if="isSupportSchedulerAPI" for="chunkNum" class="flex items-center gap-2">
+          <span class="text-center">
+            <a
+              href="https://developer.mozilla.org/en-US/docs/Web/API/Scheduler/yield"
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              Scheduler yield
+            </a>
+            分批處理：
+          </span>
+          每<input id="chunkNum" type="number" v-model="chunkNum" class="w-24 appearance-none text-center" />筆
         </label>
       </div>
       <div class="grid w-[80vw] grid-cols-3 items-start gap-x-2 gap-y-4 md:w-[40vw]">
