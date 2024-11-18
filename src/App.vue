@@ -28,7 +28,6 @@ const { list, containerProps, wrapperProps } = useVirtualList(rooms, {
 const { onTrigger } = useVisibleTrigger('load-more-trigger')
 
 onTrigger(() => {
-  console.log(isLoading.value)
   if (isLoading.value) return
   loadRooms(loadNum.value)
 })
@@ -76,7 +75,7 @@ const lastRoom = computed<Room | null>(() => {
   return list.value.at(-1)?.data || null
 })
 
-const roomIndex = computed<{from: number, to: number}>(() => {
+const roomIndex = computed<{ from: number; to: number }>(() => {
   return {
     from: rooms.value.findIndex(v => v.roomID === firstRoom.value?.roomID),
     to: rooms.value.findIndex(v => v.roomID === lastRoom.value?.roomID),
