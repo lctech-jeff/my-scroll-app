@@ -60,8 +60,11 @@ const firstRoom = computed<Room | null>(() => {
 </script>
 
 <template>
-  <div class="flex items-start gap-4">
-    <div v-bind="containerProps" class="h-[80dvh] max-w-[500px] overflow-auto rounded bg-gray-500/5 p-2">
+  <div class="flex flex-col items-start gap-4 md:flex-row">
+    <div
+      v-bind="containerProps"
+      class="h-[50dvh] w-[80dvw] overflow-auto rounded bg-gray-500/5 p-2 md:h-[80dvh] md:w-[50dvw]"
+    >
       <div v-bind="wrapperProps">
         <RoomItem v-for="{ data } in list" :key="data.roomID" :room="data" />
       </div>
@@ -73,7 +76,7 @@ const firstRoom = computed<Room | null>(() => {
     <div class="space-y-5">
       <div class="space-y-2 text-start">
         <div>總房間數量： {{ roomsLength }}</div>
-        <div>畫面數量： {{ virtualListLength }}</div>
+        <div>Virtual List 渲染數量： {{ virtualListLength }}</div>
         <div>FPS： {{ fps }}</div>
         <div>
           <a
@@ -86,7 +89,7 @@ const firstRoom = computed<Room | null>(() => {
           ： {{ cpuState }}
         </div>
       </div>
-      <div class="grid max-w-[30vw] grid-cols-3 items-start gap-x-2 gap-y-4">
+      <div class="grid w-[80vw] grid-cols-3 items-start gap-x-2 gap-y-4 md:w-[40vw]">
         <div class="flex flex-col gap-2">
           <button type="button" @click="insertRooms(insertNum)">插入</button>
           <input type="number" v-model="insertNum" class="w-full appearance-none text-center" />
@@ -100,7 +103,7 @@ const firstRoom = computed<Room | null>(() => {
           <input type="number" v-model="resetTimeNum" class="w-full appearance-none text-center" />
         </div>
         <button type="button" @click="sortRooms()">{{ isSorting ? '排序中' : '排序' }}</button>
-        <button type="button" @click="consoleTheMeasure()">Log Performance</button>
+        <button type="button" class="col-span-2 lg:col-span-1" @click="consoleTheMeasure()">Log Performance</button>
         <div class="col-span-3 space-y-2 pt-3">
           <div>Virtual List 第一則</div>
           <div v-if="firstRoom">
