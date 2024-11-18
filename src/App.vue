@@ -71,6 +71,17 @@ const consoleTheMeasure = (): void => {
 const firstRoom = computed<Room | null>(() => {
   return list.value[0]?.data || null
 })
+
+const lastRoom = computed<Room | null>(() => {
+  return list.value.at(-1)?.data || null
+})
+
+const roomIndex = computed<{from: number, to: number}>(() => {
+  return {
+    from: rooms.value.findIndex(v => v.roomID === firstRoom.value?.roomID),
+    to: rooms.value.findIndex(v => v.roomID === lastRoom.value?.roomID),
+  }
+})
 </script>
 
 <template>
@@ -90,7 +101,8 @@ const firstRoom = computed<Room | null>(() => {
     <div class="space-y-5">
       <div class="space-y-2 text-start">
         <div>總房間數量： {{ roomsLength }}</div>
-        <div>Virtual List 渲染數量： {{ virtualListLength }}</div>
+        <div>Virtual List 渲染數量： {{ virtualListLength }} 間</div>
+        <div>{{ `渲染 ${roomIndex.from + 1} 至 ${roomIndex.to + 1} 間` }}</div>
         <div>FPS： {{ fps }}</div>
         <div>
           <a
@@ -140,9 +152,13 @@ const firstRoom = computed<Room | null>(() => {
         <button type="button" @click="sortRooms()">{{ isSorting ? '排序中' : '排序' }}</button>
         <button type="button" class="col-span-2 lg:col-span-1" @click="consoleTheMeasure()">Log Performance</button>
         <div class="col-span-3 space-y-2 pt-3">
-          <div>Virtual List 第一則</div>
+          <div>Virtual List 第一間</div>
           <div v-if="firstRoom">
             <RoomItem :room="firstRoom" />
+          </div>
+          <div>Virtual List 最後一間</div>
+          <div v-if="lastRoom">
+            <RoomItem :room="lastRoom" />
           </div>
         </div>
       </div>
