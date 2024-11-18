@@ -1,5 +1,6 @@
 import type { Room } from '@/domain'
 import { faker } from '@faker-js/faker'
+import { useDebounceFn } from '@vueuse/core'
 
 const INIT_ROOM_COUNT = 10
 const chunkNum = ref<number>(100)
@@ -51,6 +52,10 @@ const sortRooms = async (): Promise<void> => {
 
 sortRooms()
 
+const debounceSortRooms = useDebounceFn(() => {
+  sortRooms()
+}, 300, { maxWait: 2000})
+
 const isInserting = ref<boolean>(false)
 
 const insertRooms = async (count: number): Promise<void> => {
@@ -79,7 +84,7 @@ const insertRooms = async (count: number): Promise<void> => {
       // @ts-expect-error
       await window.scheduler.yield()
 
-      sortRooms()
+      debounceSortRooms()
       // @ts-expect-error
       await window.scheduler.yield()
     }
@@ -133,7 +138,7 @@ const loadRooms = async (count: number): Promise<void> => {
       rooms.value = rooms.value.concat(newRooms)
       // @ts-expect-error
       await window.scheduler.yield()
-      sortRooms()
+      debounceSortRooms()
       // @ts-expect-error
       await window.scheduler.yield()
     }
@@ -178,7 +183,7 @@ const resetRoomTime = async (count: number): Promise<void> => {
       })
 
       rooms.value = [...rooms.value]
-      sortRooms()
+      debounceSortRooms()
 
       // @ts-expect-error
       await window.scheduler.yield()
