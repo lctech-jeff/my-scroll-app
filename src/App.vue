@@ -59,15 +59,6 @@ const virtualListLength = computed(() => {
   return Math.ceil(transitionVirtualListLength.value)
 })
 
-const consoleTheMeasure = (): void => {
-  const insertMeasures = performance.getEntriesByName('插入 ＋ 排序')
-  const loadedMeasures = performance.getEntriesByName('載入更多 ＋ 排序')
-  const randomMeasures = performance.getEntriesByName('刷新時間 ＋ 排序')
-  console.log(insertMeasures)
-  console.log(loadedMeasures)
-  console.log(randomMeasures)
-}
-
 const firstRoom = computed<Room | null>(() => {
   return list.value[0]?.data || null
 })
@@ -82,6 +73,16 @@ const roomIndex = computed<{ from: number; to: number }>(() => {
     to: rooms.value.findIndex(v => v.roomID === lastRoom.value?.roomID),
   }
 })
+
+const perfObserver = (list: PerformanceObserverEntryList) => {
+  list.getEntries().forEach(entry => {
+    if (entry.entryType === 'measure') {
+      console.log(`${entry.name} 花費時間: ${entry.duration} ms`)
+    }
+  })
+}
+const observer = new PerformanceObserver(perfObserver)
+observer.observe({ entryTypes: ['measure'] })
 </script>
 
 <template>
@@ -157,7 +158,6 @@ const roomIndex = computed<{ from: number; to: number }>(() => {
           <input type="number" v-model="resetTimeNum" class="w-full appearance-none text-center" />
         </div>
         <button type="button" @click="sortRooms()">{{ isSorting ? '排序中' : '排序' }}</button>
-        <button type="button" class="col-span-2 lg:col-span-1" @click="consoleTheMeasure()">Log Performance</button>
         <div class="col-span-3 space-y-2 pt-3">
           <div>Virtual List 第一間</div>
           <div v-if="firstRoom">

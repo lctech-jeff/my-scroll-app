@@ -43,11 +43,15 @@ const sortWorker = new Worker(new URL('@/worker/sort.ts', import.meta.url), {
 })
 
 sortWorker.addEventListener('message', e => {
-  if (e.data.flag === lastSortFlag) {
-    rooms.value = e.data.payload
+  if (e.data.log) {
+    console.log(e.data.log)
+    return
   }
 
-  isSortingCount.value--
+  if (e.data.flag === lastSortFlag) {
+    rooms.value = e.data.payload
+    isSortingCount.value--
+  }
 })
 
 const isUsingWorker = ref<boolean>(true)
@@ -64,7 +68,7 @@ const sortRooms = async (): Promise<void> => {
       })
     )
   } else {
-    console.time('排序花費時間')
+    performance.mark('排序-started')
     rooms.value.sort((a: Room, b: Room) => {
       if (a.updatedAt > b.updatedAt) {
         return -1
@@ -72,7 +76,9 @@ const sortRooms = async (): Promise<void> => {
         return 1
       }
     })
-    console.timeEnd('排序花費時間')
+    performance.mark('排序-ended')
+    performance.measure('排序', '排序-started', '排序-ended')
+    isSortingCount.value--
   }
 }
 
