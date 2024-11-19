@@ -2,7 +2,7 @@
 import { useCPU } from '@/composable/useCPU'
 import { useRooms } from '@/composable/useRooms'
 import { useVisibleTrigger } from '@/composable/useVisibleTrigger'
-import type { Room } from '@/domain'
+import type { RoomSimple } from '@/domain'
 import { useFps, useTransition, useVirtualList } from '@vueuse/core'
 
 import RoomItem from '@/components/RoomItem.vue'
@@ -59,11 +59,11 @@ const virtualListLength = computed(() => {
   return Math.ceil(transitionVirtualListLength.value)
 })
 
-const firstRoom = computed<Room | null>(() => {
+const firstRoom = computed<RoomSimple | null>(() => {
   return list.value[0]?.data || null
 })
 
-const lastRoom = computed<Room | null>(() => {
+const lastRoom = computed<RoomSimple | null>(() => {
   return list.value.at(-1)?.data || null
 })
 

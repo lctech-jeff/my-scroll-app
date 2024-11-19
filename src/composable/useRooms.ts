@@ -1,4 +1,4 @@
-import type { Room } from '@/domain'
+import type { Room, RoomSimple } from '@/domain'
 import { faker } from '@faker-js/faker'
 import { useDebounceFn } from '@vueuse/core'
 
@@ -30,11 +30,38 @@ export const createRandomRoom = (): Room => {
   }
 }
 
-const rooms = ref<Room[]>(
-  faker.helpers.multiple(createRandomRoom, {
-    count: INIT_ROOM_COUNT,
+const initRooms = faker.helpers.multiple(createRandomRoom, {
+  count: INIT_ROOM_COUNT,
+})
+
+// 儲存完整資訊
+const roomsMap = ref<Map<string, Room>>(new Map())
+
+// 排序用
+const rooms = ref<RoomSimple[]>([])
+
+const addRooms = (room: Room) => {
+  roomsMap.value.set(room.roomID, room)
+  rooms.value.push({
+    roomID: room.roomID,
+    updatedAt: room.updatedAt,
+    tag: room.tag,
   })
-)
+}
+
+const updateRoom = (room: Room) => {
+  roomsMap.value.set(room.roomID, room)
+  const targetRoom = rooms.value.find(v => v.roomID === room.roomID)
+  if (targetRoom) {
+    targetRoom.updatedAt = room.updatedAt
+    targetRoom.roomID = room.roomID
+    targetRoom.tag = room.tag
+  }
+}
+
+initRooms.forEach(v => {
+  addRooms(v)
+})
 
 let lastSortFlag: number = Date.now()
 
@@ -68,8 +95,9 @@ const sortRooms = async (): Promise<void> => {
       })
     )
   } else {
+    rooms.value = [...rooms.value]
     performance.mark('本地排序-started')
-    rooms.value.sort((a: Room, b: Room) => {
+    rooms.value.sort((a: RoomSimple, b: RoomSimple) => {
       if (a.updatedAt > b.updatedAt) {
         return -1
       } else {
@@ -116,10 +144,13 @@ const insertRooms = async (count: number): Promise<void> => {
             updatedAt: faker.date.between({ from: timeRange.value.from, to: Date.now() }).getTime(),
           }
         })
-      rooms.value = rooms.value.concat(newRooms)
+
+      newRooms.forEach(v => {
+        addRooms(v)
+      })
+
       // @ts-expect-error
       await window.scheduler.yield()
-
       debounceSortRooms()
       // @ts-expect-error
       await window.scheduler.yield()
@@ -135,7 +166,9 @@ const insertRooms = async (count: number): Promise<void> => {
           updatedAt: faker.date.between({ from: timeRange.value.from, to: Date.now() }).getTime(),
         }
       })
-    rooms.value = rooms.value.concat(newRooms)
+    newRooms.forEach(v => {
+      addRooms(v)
+    })
     sortRooms()
   }
 
@@ -171,7 +204,9 @@ const loadRooms = async (count: number): Promise<void> => {
             updatedAt: faker.date.between(timeRange.value).getTime(),
           }
         })
-      rooms.value = rooms.value.concat(newRooms)
+      newRooms.forEach(v => {
+        addRooms(v)
+      })
       // @ts-expect-error
       await window.scheduler.yield()
       debounceSortRooms()
@@ -189,7 +224,10 @@ const loadRooms = async (count: number): Promise<void> => {
           updatedAt: faker.date.between(timeRange.value).getTime(),
         }
       })
-    rooms.value = rooms.value.concat(newRooms)
+    newRooms.forEach(v => {
+      addRooms(v)
+    })
+
     sortRooms()
   }
 
@@ -215,21 +253,25 @@ const resetRoomTime = async (count: number): Promise<void> => {
     for (let i = 0; i < chunkCount.length; i++) {
       chunkCount.forEach(() => {
         const randomNum = Math.floor(Math.random() * rooms.value.length)
-        rooms.value[randomNum].updatedAt = Date.now()
+        const targetRoom = roomsMap.value.get(rooms.value[randomNum].roomID)
+        if (targetRoom) {
+          updateRoom({
+            ...targetRoom,
+            updatedAt: Date.now(),
+          })
+        }
       })
-
-      rooms.value = [...rooms.value]
-      debounceSortRooms()
-
       // @ts-expect-error
       await window.scheduler.yield()
     }
+
+    debounceSortRooms()
   } else {
     for (let i = 0; i < count; i++) {
       const randomNum = Math.floor(Math.random() * rooms.value.length)
       rooms.value[randomNum].updatedAt = Date.now()
     }
-    rooms.value = [...rooms.value]
+
     sortRooms()
   }
 
@@ -240,6 +282,7 @@ const resetRoomTime = async (count: number): Promise<void> => {
 
 export const useRooms = () => {
   return {
+    roomsMap,
     rooms,
     sortRooms,
     loadRooms,

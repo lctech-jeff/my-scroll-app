@@ -1,11 +1,11 @@
-import type { Room } from '@/domain'
+import type { RoomSimple } from '@/domain'
 
 const sortRoom = (e: MessageEvent) => {
   const data = JSON.parse(e.data)
-  const arr: Room[] = data.payload
+  const arr: RoomSimple[] = data.payload
   if (Array.isArray(arr)) {
     performance.mark('worker 排序-started')
-    arr.sort((a: Room, b: Room) => {
+    arr.sort((a: RoomSimple, b: RoomSimple) => {
       if (a.updatedAt > b.updatedAt) {
         return -1
       } else {
