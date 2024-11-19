@@ -1,1 +1,0 @@
-(function(){"use strict";const a=s=>{const t=JSON.parse(s.data),e=t.payload;Array.isArray(e)?(console.time("worker 排序花費時間"),e.sort((r,o)=>r.updatedAt>o.updatedAt?-1:1),self.postMessage({payload:e,flag:t.flag}),console.timeEnd("worker 排序花費時間")):self.postMessage(s.data)};self.addEventListener("message",a)})();
