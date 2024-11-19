@@ -8,11 +8,13 @@ const callback = (records: unknown[]): void => {
 
 const observeCPU = async (): Promise<void> => {
   try {
-    // @ts-expect-error
-    const observer = new PressureObserver(callback)
-    await observer.observe('cpu', {
-      sampleInterval: 1000, // 1000ms
-    })
+    if ('PressureObserver' in window) {
+      // @ts-expect-error
+      const observer = new PressureObserver(callback)
+      await observer.observe('cpu', {
+        sampleInterval: 1000, // 1000ms
+      })
+    }
   } catch (e: unknown) {
     console.log(e)
   }
