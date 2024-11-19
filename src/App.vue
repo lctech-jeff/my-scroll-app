@@ -122,14 +122,18 @@ observer.observe({ entryTypes: ['measure'] })
             Web Worker API
           </a>
         </label>
-        <label v-if="isSupportSchedulerAPI" for="chunkNum" class="flex items-center gap-2">
+        <label for="chunkNum" class="flex items-center gap-2">
           <span class="text-center">
             <a
-              href="https://developer.mozilla.org/en-US/docs/Web/API/Scheduler/yield"
+              :href="
+                isSupportSchedulerAPI
+                  ? 'https://developer.mozilla.org/en-US/docs/Web/API/Scheduler/yield'
+                  : 'https://developer.mozilla.org/en-US/docs/Web/API/Prioritized_Task_Scheduling_API#mutable_and_immutable_task_priority'
+              "
               target="_blank"
               rel="noreferrer noopener"
             >
-              Scheduler yield
+              {{ isSupportSchedulerAPI ? 'Scheduler yield' : 'setTimeout' }}
             </a>
             分批處理：
           </span>

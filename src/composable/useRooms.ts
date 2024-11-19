@@ -1,4 +1,5 @@
 import type { Room, RoomSimple } from '@/domain'
+import { delayYield } from '@/utils'
 import { faker } from '@faker-js/faker'
 import { useDebounceFn } from '@vueuse/core'
 
@@ -128,38 +129,14 @@ const insertRooms = async (count: number): Promise<void> => {
   isInserting.value = true
   performance.mark('insert-started')
 
-  // @ts-expect-error
-  if (globalThis.scheduler?.yield) {
-    const chunkCount: number[] = new Array(Math.floor(count / chunkNum.value))
-      .fill(chunkNum.value)
-      .concat(count % chunkNum.value)
+  const chunkCount: number[] = new Array(Math.floor(count / chunkNum.value))
+    .fill(chunkNum.value)
+    .concat(count % chunkNum.value)
 
-    for (let i = 0; i < chunkCount.length; i++) {
-      const newRooms = faker.helpers
-        .multiple(createRandomRoom, {
-          count: chunkCount[i],
-        })
-        .map(v => {
-          return {
-            ...v,
-            updatedAt: faker.date.between({ from: timeRange.value.from, to: Date.now() }).getTime(),
-          }
-        })
-
-      newRooms.forEach(v => {
-        addRooms(v)
-      })
-
-      // @ts-expect-error
-      await window.scheduler.yield()
-      debounceSortRooms()
-      // @ts-expect-error
-      await window.scheduler.yield()
-    }
-  } else {
+  for (let i = 0; i < chunkCount.length; i++) {
     const newRooms = faker.helpers
       .multiple(createRandomRoom, {
-        count,
+        count: chunkCount[i],
       })
       .map(v => {
         return {
@@ -167,10 +144,14 @@ const insertRooms = async (count: number): Promise<void> => {
           updatedAt: faker.date.between({ from: timeRange.value.from, to: Date.now() }).getTime(),
         }
       })
+
     newRooms.forEach(v => {
       addRooms(v)
     })
-    sortRooms()
+
+    await delayYield()
+    debounceSortRooms()
+    await delayYield()
   }
 
   performance.mark('insert-ended')
@@ -188,36 +169,14 @@ const loadRooms = async (count: number): Promise<void> => {
   timeRange.value.to = timeRange.value.from
   timeRange.value.from = timeRange.value.to - 86400 * 1000 * 1
 
-  // @ts-expect-error
-  if (globalThis.scheduler?.yield) {
-    const chunkCount: number[] = new Array(Math.floor(count / chunkNum.value))
-      .fill(chunkNum.value)
-      .concat(count % chunkNum.value)
+  const chunkCount: number[] = new Array(Math.floor(count / chunkNum.value))
+    .fill(chunkNum.value)
+    .concat(count % chunkNum.value)
 
-    for (let i = 0; i < chunkCount.length; i++) {
-      const newRooms = faker.helpers
-        .multiple(createRandomRoom, {
-          count: chunkCount[i],
-        })
-        .map(v => {
-          return {
-            ...v,
-            updatedAt: faker.date.between(timeRange.value).getTime(),
-          }
-        })
-      newRooms.forEach(v => {
-        addRooms(v)
-      })
-      // @ts-expect-error
-      await window.scheduler.yield()
-      debounceSortRooms()
-      // @ts-expect-error
-      await window.scheduler.yield()
-    }
-  } else {
+  for (let i = 0; i < chunkCount.length; i++) {
     const newRooms = faker.helpers
       .multiple(createRandomRoom, {
-        count,
+        count: chunkCount[i],
       })
       .map(v => {
         return {
@@ -228,8 +187,9 @@ const loadRooms = async (count: number): Promise<void> => {
     newRooms.forEach(v => {
       addRooms(v)
     })
-
-    sortRooms()
+    await delayYield()
+    debounceSortRooms()
+    await delayYield()
   }
 
   performance.mark('load-ended')
@@ -245,36 +205,25 @@ const resetRoomTime = async (count: number): Promise<void> => {
   isResetting.value = true
   performance.mark('reset-time-started')
 
-  // @ts-expect-error
-  if (globalThis.scheduler?.yield) {
-    const chunkCount: number[] = new Array(Math.floor(count / chunkNum.value))
-      .fill(chunkNum.value)
-      .concat(count % chunkNum.value)
+  const chunkCount: number[] = new Array(Math.floor(count / chunkNum.value))
+    .fill(chunkNum.value)
+    .concat(count % chunkNum.value)
 
-    for (let i = 0; i < chunkCount.length; i++) {
-      chunkCount.forEach(() => {
-        const randomNum = Math.floor(Math.random() * rooms.value.length)
-        const targetRoom = roomsMap.value.get(rooms.value[randomNum].roomID)
-        if (targetRoom) {
-          updateRoom({
-            ...targetRoom,
-            updatedAt: Date.now(),
-          })
-        }
-      })
-      // @ts-expect-error
-      await window.scheduler.yield()
-    }
-
-    debounceSortRooms()
-  } else {
-    for (let i = 0; i < count; i++) {
+  for (let i = 0; i < chunkCount.length; i++) {
+    chunkCount.forEach(() => {
       const randomNum = Math.floor(Math.random() * rooms.value.length)
-      rooms.value[randomNum].updatedAt = Date.now()
-    }
-
-    sortRooms()
+      const targetRoom = roomsMap.value.get(rooms.value[randomNum].roomID)
+      if (targetRoom) {
+        updateRoom({
+          ...targetRoom,
+          updatedAt: Date.now(),
+        })
+      }
+    })
+    await delayYield()
   }
+
+  debounceSortRooms()
 
   performance.mark('reset-time-ended')
   performance.measure('刷新時間 ＋ 排序', 'reset-time-started', 'reset-time-ended')
