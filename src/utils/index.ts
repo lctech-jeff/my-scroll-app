@@ -4,7 +4,7 @@ export const delay = (ms: number): Promise<void> => {
 
 export const delayYield = async (): Promise<void> => {
   // @ts-expect-error
-  if (globalThis.scheduler?.yield) {
+  if ('scheduler' in window && 'yield' in scheduler) {
     // @ts-expect-error
     await window.scheduler.yield()
   } else {
