@@ -95,7 +95,6 @@ const sortRooms = async (): Promise<void> => {
       })
     )
   } else {
-    rooms.value = [...rooms.value]
     performance.mark('本地排序-started')
     rooms.value.sort((a: RoomSimple, b: RoomSimple) => {
       if (a.updatedAt > b.updatedAt) {
@@ -107,6 +106,8 @@ const sortRooms = async (): Promise<void> => {
     performance.mark('本地排序-ended')
     performance.measure('本地排序', '本地排序-started', '本地排序-ended')
     isSortingCount.value--
+    // 觸發 virtual list 的 shallowRef 更新顯示
+    triggerRef(rooms)
   }
 }
 
