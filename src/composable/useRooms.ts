@@ -68,7 +68,7 @@ const sortRooms = async (): Promise<void> => {
       })
     )
   } else {
-    performance.mark('排序-started')
+    performance.mark('本地排序-started')
     rooms.value.sort((a: Room, b: Room) => {
       if (a.updatedAt > b.updatedAt) {
         return -1
@@ -76,8 +76,8 @@ const sortRooms = async (): Promise<void> => {
         return 1
       }
     })
-    performance.mark('排序-ended')
-    performance.measure('排序', '排序-started', '排序-ended')
+    performance.mark('本地排序-ended')
+    performance.measure('本地排序', '本地排序-started', '本地排序-ended')
     isSortingCount.value--
   }
 }

@@ -119,7 +119,7 @@ observer.observe({ entryTypes: ['measure'] })
           <input id="isUsingWorker" type="checkbox" v-model="isUsingWorker" class="w-6 text-center" />
           使用
           <a href="https://developer.mozilla.org/en-US/docs/Web/API/Worker" target="_blank" rel="noreferrer noopener">
-            Worker API
+            Web Worker API
           </a>
         </label>
         <label v-if="isSupportSchedulerAPI" for="chunkNum" class="flex items-center gap-2">
