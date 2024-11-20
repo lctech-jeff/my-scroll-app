@@ -13,7 +13,8 @@
   "dependencies": {
     "@vueuse/components": "^11.2.0",
     "@vueuse/core": "^11.2.0",
-    "vue": "^3.5.12"
+    "vue": "^3.5.12",
+    "vue-virtual-scroller": "2.0.0-beta.8"
   },
   "devDependencies": {
     "@faker-js/faker": "^9.2.0",

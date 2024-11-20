@@ -5,7 +5,7 @@
 ## 關於
 測試利用 Virtual list 渲染大量列表時的效果。
 
-本專案使用 [Faker](https://fakerjs.dev/) 製作模擬資料。並利用 VueUse 中的 [useVirtualList](https://vueuse.org/core/useVirtualList/) 處理 Virtual list 的渲染。
+本專案使用 [Faker](https://fakerjs.dev/) 製作模擬資料。並利用 [vue-virtual-scroller](https://github.com/Akryum/vue-virtual-scroller/blob/master/packages/vue-virtual-scroller/README.md) 處理 Virtual list 的渲染。
 
 ## 功能
 
@@ -23,6 +23,12 @@
 
 不同 CPU throttle：
   
-  1. 正常 - 本地排序時間 50ms 時為元素 40000 左右。
-  2. 降低 6 倍 - 本地排序時間 50ms 時為元素 11000 左右。
-  3. 降低 20 倍 - 本地排序時間 50ms 時為元素 3500 左右。
+1. 正常 - 本地排序時間 50ms 時為元素 40000 左右。
+2. 降低 6 倍 - 本地排序時間 50ms 時為元素 11000 左右。
+3. 降低 20 倍 - 本地排序時間 50ms 時為元素 3500 左右。
+
+
+## 下一步
+
+1. 需要解決上下倒轉的情境。
+2. 需要測試二維陣列內容時的效能。

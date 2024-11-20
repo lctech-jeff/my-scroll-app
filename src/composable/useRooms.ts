@@ -26,7 +26,10 @@ export const createRandomRoom = (): Room => {
     name: faker.person.firstName(),
     avatar: faker.image.avatar(),
     updatedAt: faker.date.between(timeRange.value).getTime(),
-    message: faker.lorem.lines(),
+    message: faker.lorem.lines({
+      min: 0,
+      max: 10
+    }),
     tag: faker.number.int({ min: 1, max: 3 }),
   }
 }

@@ -2,9 +2,11 @@
 import { UseTimeAgo } from '@vueuse/components'
 import type { RoomSimple, Room } from '@/domain'
 import { useRooms } from '@/composable/useRooms'
+import { StyleValue } from 'vue'
 
-const { room } = defineProps<{
+const { room, lineClamp = 0 } = defineProps<{
   room: RoomSimple
+  lineClamp?: number
 }>()
 
 const { roomsMap } = useRooms()
@@ -12,10 +14,21 @@ const { roomsMap } = useRooms()
 const roomDetail = computed<Room | null>(() => {
   return roomsMap.value.get(room.roomID) || null
 })
+
+const lineClampStyle = computed<StyleValue>(() => {
+  if (lineClamp > 0) {
+    return {
+      overflow: 'hidden',
+      display: '-webkit-box',
+      '-webkit-box-orient': 'vertical',
+      '-webkit-line-clamp': 1,
+    }
+  }
+})
 </script>
 
 <template>
-  <div class="flex h-16 cursor-pointer items-center gap-3 px-4 py-3 hover:bg-slate-500">
+  <div class="flex min-h-16 cursor-pointer items-center gap-3 px-4 py-3 hover:bg-slate-500">
     <div class="size-10 shrink-0 overflow-hidden rounded-full bg-slate-500/25">
       <img v-if="roomDetail" class="size-full object-cover" :src="roomDetail.avatar" :alt="roomDetail.name" />
     </div>
@@ -26,7 +39,7 @@ const roomDetail = computed<Room | null>(() => {
           <span class="text-xs">{{ timeAgo }}</span>
         </UseTimeAgo>
       </div>
-      <span class="line-clamp-1 text-xs opacity-60">{{ roomDetail.message }}</span>
+      <span class="text-xs opacity-60" :style="lineClampStyle">{{ roomDetail.message }}</span>
     </div>
   </div>
 </template>

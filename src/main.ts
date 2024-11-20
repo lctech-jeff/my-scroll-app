@@ -4,5 +4,6 @@ import App from './App.vue'
 
 import eruda from 'eruda'
 
-createApp(App).mount('#app')
+const app = createApp(App)
+app.mount('#app')
 eruda.init()

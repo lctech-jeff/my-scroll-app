@@ -3,11 +3,17 @@ import { useCPU } from '@/composable/useCPU'
 import { useRooms } from '@/composable/useRooms'
 import { useVisibleTrigger } from '@/composable/useVisibleTrigger'
 import type { RoomSimple } from '@/domain'
-import { useFps, useTransition, useVirtualList } from '@vueuse/core'
+import { useFps, useTransition } from '@vueuse/core'
+import { faker } from '@faker-js/faker'
+
+// @ts-expect-error
+import { DynamicScroller, DynamicScrollerItem } from 'vue-virtual-scroller'
+import 'vue-virtual-scroller/dist/vue-virtual-scroller.css'
 
 import RoomItem from '@/components/RoomItem.vue'
 
 const {
+  roomsMap,
   rooms,
   sortRooms,
   insertRooms,
@@ -21,11 +27,6 @@ const {
   isUsingWorker,
 } = useRooms()
 
-const { list, containerProps, wrapperProps } = useVirtualList(rooms, {
-  itemHeight: 64,
-  overscan: 10,
-})
-
 const { onTrigger } = useVisibleTrigger('load-more-trigger')
 
 onTrigger(() => {
@@ -33,7 +34,21 @@ onTrigger(() => {
   loadRooms(loadNum.value)
 })
 
+const startIndex = ref<number>(0)
+const endIndex = ref<number>(0)
+
+const handleScrollerUpdate = (startIdx: number, endIdx: number) => {
+  startIndex.value = startIdx
+  endIndex.value = endIdx
+}
+
+const list = computed<RoomSimple[]>(() => {
+  return rooms.value.slice(startIndex.value, endIndex.value)
+})
+
 // UI
+const avatar = faker.image.avatar()
+const firstName = faker.person.firstName()
 const fps = useFps()
 
 const { state: cpuState } = useCPU()
@@ -60,18 +75,11 @@ const virtualListLength = computed(() => {
 })
 
 const firstRoom = computed<RoomSimple | null>(() => {
-  return list.value[0]?.data || null
+  return roomsMap.value.get(list.value[0]?.roomID || '') || null
 })
 
 const lastRoom = computed<RoomSimple | null>(() => {
-  return list.value.at(-1)?.data || null
-})
-
-const roomIndex = computed<{ from: number; to: number }>(() => {
-  return {
-    from: rooms.value.findIndex(v => v.roomID === firstRoom.value?.roomID),
-    to: rooms.value.findIndex(v => v.roomID === lastRoom.value?.roomID),
-  }
+  return roomsMap.value.get(list.value.at(-1)?.roomID || '') || null
 })
 
 const perfObserver = (list: PerformanceObserverEntryList) => {
@@ -87,23 +95,44 @@ observer.observe({ entryTypes: ['measure'] })
 
 <template>
   <div class="flex flex-col items-start gap-4 md:flex-row">
-    <div
-      v-bind="containerProps"
-      class="h-[50dvh] w-[80dvw] overflow-auto rounded bg-gray-500/5 p-2 md:h-[80dvh] md:w-[50dvw]"
-    >
-      <div v-bind="wrapperProps">
-        <RoomItem v-for="{ data } in list" :key="data.roomID" :room="data" />
-      </div>
-      <div ref="load-more-trigger" v-if="!isLoading" class="pointer-event-none invisible -translate-y-[30vh]"></div>
-      <div class="grid place-content-center">
-        <img src="@/assets/images/loading.svg" alt="" />
-      </div>
+    <div class="h-[50dvh] w-[80dvw] overflow-auto rounded bg-gray-500/5 p-2 md:h-[80dvh] md:w-[50dvw]">
+      <DynamicScroller
+        :items="rooms"
+        :min-item-size="24"
+        class="h-full"
+        key-field="roomID"
+        :emit-update="true"
+        @update="handleScrollerUpdate"
+      >
+        <template #before>
+          <div class="grid place-content-center gap-3 py-4">
+            <img class="size-16 rounded-full mx-auto" :src="avatar" alt="host" />
+            <div class="text-center text-lg font-bold">{{ firstName }}'s room list</div>
+          </div>
+        </template>
+        <template v-slot="{ item, active }">
+          <DynamicScrollerItem
+            :item="item"
+            :active="active"
+            :size-dependencies="[item.message]"
+            :data-index="item.index"
+          >
+            <RoomItem :room="item" />
+          </DynamicScrollerItem>
+        </template>
+        <template #after>
+          <div ref="load-more-trigger" v-if="!isLoading" class="pointer-event-none invisible -translate-y-[30vh]"></div>
+          <div class="grid h-12 place-content-center">
+            <img src="@/assets/images/loading.svg" alt="" />
+          </div>
+        </template>
+      </DynamicScroller>
     </div>
     <div class="space-y-5">
       <div class="space-y-2 text-start">
         <div>總房間數量： {{ roomsLength }}</div>
         <div>Virtual List 渲染數量： {{ virtualListLength }} 間</div>
-        <div>{{ `渲染 ${roomIndex.from + 1} 至 ${roomIndex.to + 1} 間` }}</div>
+        <div>{{ `渲染 ${startIndex + 1} 至 ${endIndex + 1} 間` }}</div>
         <div>FPS： {{ fps }}</div>
         <div>
           <a
@@ -165,11 +194,11 @@ observer.observe({ entryTypes: ['measure'] })
         <div class="col-span-3 space-y-2 pt-3">
           <div>Virtual List 第一間</div>
           <div v-if="firstRoom">
-            <RoomItem :room="firstRoom" />
+            <RoomItem :room="firstRoom" :line-clamp="3" />
           </div>
           <div>Virtual List 最後一間</div>
           <div v-if="lastRoom">
-            <RoomItem :room="lastRoom" />
+            <RoomItem :room="lastRoom" :line-clamp="3" />
           </div>
         </div>
       </div>
